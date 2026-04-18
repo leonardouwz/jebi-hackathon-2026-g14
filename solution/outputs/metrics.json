@@ -1,0 +1,13 @@
+{
+  "productivity_t_per_h": 0.0,
+  "mean_cycle_time_s": 0.0,
+  "cycles_per_hour": 0.0,
+  "mean_fill_factor": 0.7,
+  "bucket_capacity_t": 68,
+  "mean_exchange_dead_time_s": 0.0,
+  "n_exchanges_detected": 0,
+  "smoothness_rms_jerk": 0,
+  "pct_productive_time": 0,
+  "n_cycles_detected": 0,
+  "n_cycles_per_truck": 0.0
+}
