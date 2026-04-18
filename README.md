@@ -1,18 +1,166 @@
 # Jebi Hackathon 2026 - Grupo 14
 
-Repositorio oficial de entrega para el grupo 14 del Jebi Hackathon 2026.
+**Mining Productivity 2.0** — Cuantificación de productividad de pala Hitachi EX-5600 cargando camiones CAT 793F usando video estéreo + IMU.
 
-## El reto
+---
 
-**Tema: Mining Productivity 2.0**
+## Cómo funciona
 
-Usando 15 minutos de datos de una pala Hitachi EX-5600 cargando camiones (video estereo + IMU), proponer una solucion que ayude al operador de mina a incrementar la productividad.
+El sistema mide productividad como:
 
-**Principio guia:** "No se puede gestionar lo que no se puede medir."
+> **Productividad (t/h) = (ciclos/hora) × fill factor × 68 t/bucket**
 
-## Como entregar
+Las 4 métricas que extrae el pipeline:
+1. **Tiempo de ciclo** — segmentación por IMU (acelerómetro + giroscopio)
+2. **Fill factor del bucket** — disparidad estéreo (StereoSGBM sobre frames extraídos por ffmpeg)
+3. **Tiempo muerto por intercambio de camión** — derivada de quaternion IMU
+4. **Suavidad del operador** — RMS del jerk (derivada de aceleración)
 
-Su entrega final es lo que esta en la branch `main` con el tag `submission` antes de las **17:00 del 18 de abril**.
+---
+
+## Requisitos previos
+
+### Sistema
+- macOS / Linux
+- Python 3.11+
+- ffmpeg
+- Node.js 18+ (solo para el dashboard visual)
+
+### Instalar dependencias del sistema (macOS)
+
+```bash
+# Instalar Homebrew si no lo tienes
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/homebrew/install/HEAD/install.sh)"
+
+# Instalar ffmpeg
+brew install ffmpeg
+
+# Instalar Node.js (si no lo tienes)
+brew install node
+```
+
+### Instalar dependencias Python
+
+```bash
+pip3 install -r requirements.txt
+```
+
+### API Key de Anthropic
+
+El paso final del pipeline llama a Claude (claude-sonnet-4-6) para generar el reporte narrativo. Necesitas exportar tu API key antes de correr:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+---
+
+## Inputs esperados
+
+Coloca los 3 archivos en `./inputs/` antes de correr:
+
+| Archivo | Descripción |
+|---|---|
+| `*imu*.csv` o `*imu*.npy` | Datos IMU — shape (N, 11): timestamp, accel xyz, gyro xyz, quaternion wxyz |
+| `*left*.mp4` | Video cámara izquierda (estéreo) |
+| `*right*.mp4` | Video cámara derecha (estéreo) |
+
+El script detecta los archivos dinámicamente por nombre — no importa el prefijo.
+
+---
+
+## Correr el pipeline
+
+```bash
+# Desde la raíz del repositorio
+bash run.sh
+```
+
+El pipeline hace lo siguiente en orden:
+1. Valida que los 3 inputs existan y tengan el schema correcto
+2. Extrae frames a 0.5 fps con ffmpeg → `./tmp/frames_left/` y `./tmp/frames_right/`
+3. Detecta intercambios de camión via derivada de quaternion IMU → `outputs/truck_events.json`
+4. Analiza ciclos IMU + fill factor estéreo → `outputs/metrics.json`, `cycles.json`, `fill_factor.json`
+5. Llama a Claude API para generar insights → `outputs/report.html`, `summary.md`
+6. Copia `outputs/metrics_dashboard.json` → `dashboard_ui/src/metrics.json` para el dashboard
+
+**Tiempo estimado: 3–8 minutos** dependiendo de la duración del video.
+
+---
+
+## Outputs generados
+
+Todos en `./outputs/`:
+
+| Archivo | Contenido |
+|---|---|
+| `metrics.json` | KPIs agregados (ciclos, fill factor, productividad t/h, jerk) |
+| `cycles.json` | Un registro por ciclo detectado |
+| `truck_events.json` | Tiempos de intercambio de camión |
+| `fill_factor.json` | Fill factor por período de carga |
+| `report.html` | Dashboard HTML standalone con gráficos |
+| `summary.md` | Narrativa con recomendación accionable |
+
+---
+
+## Ver el dashboard visual (opcional)
+
+El dashboard es una app React/Vite que se alimenta de los resultados del pipeline.
+
+### Primera vez
+
+```bash
+cd dashboard_ui
+npm install
+npm run dev
+```
+
+### Veces siguientes
+
+```bash
+cd dashboard_ui
+npm run dev
+```
+
+Abre `http://localhost:5173` en el navegador.
+
+**Para ver los datos reales:**
+1. Corre `bash run.sh` primero (actualiza `dashboard_ui/src/metrics.json` automáticamente)
+2. Con el dev server corriendo, arrastra los 3 archivos de `./inputs/` al área de drop del dashboard
+3. Click en **"Ejecutar Análisis"** — espera 3 segundos y aparece el reporte completo
+
+> Los archivos arrastrados solo desbloquean el botón para la demo. El procesamiento real lo hace `run.sh`.
+
+---
+
+## Estructura del repositorio
+
+```
+.
+├── run.sh                      # Entrypoint principal
+├── requirements.txt            # Dependencias Python
+├── inputs/                     # Datos de entrada (no commiteados)
+├── outputs/                    # Resultados generados (no commiteados)
+├── tmp/                        # Frames temporales de ffmpeg (no commiteados)
+├── solution/
+│   ├── check_inputs.py         # Validación de schema de inputs
+│   ├── truck_pipeline.py       # Detección de intercambios de camión (IMU)
+│   ├── imu_pipeline.py         # Análisis de ciclos y suavidad (IMU)
+│   ├── video_pipeline.py       # Stereo fill factor + métricas agregadas
+│   ├── insight_engine.py       # Reporte Claude API + gráficos + dashboard JSON
+│   └── video/
+│       ├── stereo_pipeline.py  # Pipeline estéreo alternativo (VideoCapture)
+│       ├── grafico.py          # Visualización de señal de detección
+│       └── generador_video.py  # Video anotado con ROI y estado
+└── dashboard_ui/               # App React/Vite para demo visual
+    └── src/
+        ├── metrics.json        # Generado por run.sh — datos reales del pipeline
+        └── metrics.ts          # Re-exporta metrics.json al dashboard
+```
+
+---
+
+## Entrega final
 
 ```bash
 git add .
@@ -22,49 +170,4 @@ git tag submission
 git push --tags
 ```
 
-## Contrato del entrypoint
-
-Jebi va a clonar este repo y correr `bash run.sh` contra un dataset de testeo distinto al de desarrollo. Su solucion debe:
-
-1. Leer los datos desde `./inputs/` (mismos nombres de archivo que el dev dataset: `shovel_left.mp4`, `shovel_right.mp4`, `imu_data.csv`)
-2. Escribir resultados en `./outputs/` (formato libre: JSON, CSV, reporte HTML, video anotado)
-3. Completar en menos de **10 minutos** en una laptop estandar
-4. Ser reproducible: sin claves hardcoded, sin paths absolutos
-
-**Si `run.sh` no corre contra el test dataset, su grupo queda fuera de los 8 finalistas.**
-
-## Estructura del repo
-
-```
-.
-├── README.md           # Este archivo (pueden reemplazarlo con el suyo)
-├── run.sh              # Entrypoint que Jebi va a ejecutar (editar)
-├── requirements.txt    # Dependencias Python (editar segun necesiten)
-├── solution/           # Su codigo va aqui
-├── inputs/             # Vacio. Jebi pone aqui el test dataset al evaluar
-└── outputs/            # Vacio. Su run.sh escribe aqui
-```
-
-## Setup local
-
-Para desarrollar, descarguen el dataset de desarrollo desde el link en su correo y colocando los 3 archivos en `./inputs/` localmente. **No commiteen los archivos de video al repo** (ya estan en `.gitignore`).
-
-```bash
-# Una vez con los datos en ./inputs/
-bash run.sh
-# Ver resultados en ./outputs/
-```
-
-## Tips
-
-- Empiecen por explorar los datos antes de escribir codigo. Que ven en el video? Que muestra el IMU?
-- Definan que significa "productividad" en su solucion antes de medirla
-- Pregunten a los mentores. El reto es deliberadamente vago
-- Sonnet 4.6 es el modelo default de Claude Code y alcanza para casi todo. No cambien a Opus sin necesidad real
-- Los 4 entregables minimos al cierre del Block 2:
-  1. Que midieron, y como?
-  2. Que les dijeron los datos?
-  3. Que le recomendarian al operador de mina?
-  4. Si tuvieran 6h mas, que construirian despues?
-
-Buena suerte.
+La entrega cierra el **18 de abril a las 17:00**. Jebi clonará este repo y correrá `bash run.sh` contra un dataset distinto — el script detecta archivos dinámicamente, sin paths ni duraciones hardcodeadas.
