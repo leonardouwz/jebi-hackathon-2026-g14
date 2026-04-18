@@ -35,7 +35,7 @@ echo "📊 Archivo IMU detectado: $IMU_FILE"
 
 # --- 2. INSPECCIÓN DE DATOS ---
 # Este script ya valida el esquema (N, 11) que hicimos
-python3 ./solution/inspect.py
+python3 ./solution/check_inputs.py
 
 # --- 3. BÚSQUEDA DINÁMICA Y PROCESAMIENTO DE VIDEO ---
 
@@ -71,13 +71,22 @@ python3 ./solution/truck_pipeline.py
 python3 ./solution/video_pipeline.py
 
 # C) Generación de Insights con Claude API
-if [ -z "$ANTHROPIC_API_KEY" ]; then
+if [ -z "" ]; then
     echo "⚠️ ADVERTENCIA: ANTHROPIC_API_KEY no está configurada. El Insight Engine fallará."
 fi
 python3 ./solution/insight_engine.py
 
-# --- 5. CIERRE ---
+# --- 5. ACTUALIZAR DASHBOARD ---
+if [ -f "./outputs/metrics_dashboard.json" ]; then
+    cp ./outputs/metrics_dashboard.json ./dashboard_ui/src/metrics.json
+    echo "📊 Dashboard actualizado: dashboard_ui/src/metrics.json"
+else
+    echo "⚠️  No se encontró metrics_dashboard.json — dashboard no actualizado."
+fi
+
+# --- 6. CIERRE ---
 echo "---"
 echo "✅ Proceso completado con éxito."
-echo "📂 Resultados guardados en ./outputs/metrics.json"
+echo "📂 Resultados en ./outputs/"
+echo "🌐 Para ver el dashboard: cd dashboard_ui && npm run dev"
 exit 0
