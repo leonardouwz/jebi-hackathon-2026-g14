@@ -27,61 +27,78 @@ def detect_truck_events(video_path, imu_path=None):
 
 def _detect_from_imu(imu_path, fps, total_frames):
     """
-    Columnas asumidas: [timestamp, ax, ay, az, gx, gy, gz, qw, qx, qy, qz]
-    Idle del operador = magnitud del giroscopio (cols 4-6) cerca de cero.
+    Usa derivada del cuaternión (cols 7-10) como indicador de actividad.
+    Durante carga: picos altos cada ~19s (ciclo de pala).
+    Durante intercambio: silencio prolongado (> 10s sin pico).
     """
     data = np.load(imu_path, allow_pickle=True)
     print(f"IMU: {data.shape[0]} filas × {data.shape[1]} columnas")
 
-    # Magnitud del giroscopio
-    gyro = data[:, 4:7]
-    gyro_mag = np.sqrt((gyro ** 2).sum(axis=1))
+    quat = data[:, 7:11]
+    dq = np.diff(quat, axis=0)
+    dq_mag = np.sqrt((dq ** 2).sum(axis=1))
+    dq_mag = np.append(dq_mag, 0)
 
-    # Suavizar con ventana de 3 segundos (3*fps muestras)
-    window = max(1, int(3 * fps))
-    gyro_smooth = uniform_filter1d(gyro_mag, size=window)
+    # Suavizar con 5s para reducir ruido pero preservar forma de los eventos
+    smooth = uniform_filter1d(dq_mag, size=max(1, int(5 * fps)))
+    times = np.arange(len(smooth)) / fps
 
-    # Tiempo en segundos para cada muestra
-    n = len(gyro_smooth)
-    times = np.arange(n) / fps
+    # Umbral: percentil 40 separa pausas de ciclo (5-9s) de actividad real
+    threshold = np.percentile(smooth, 40)
+    print(f"dQ stats: mean={smooth.mean():.5f}, p40={threshold:.5f}, max={smooth.max():.5f}")
 
-    # Umbral adaptativo: operador inactivo = por debajo del percentil 30
-    threshold = np.percentile(gyro_smooth, 30)
-    print(f"Gyro stats: mean={gyro_smooth.mean():.3f}, p30={threshold:.3f}, max={gyro_smooth.max():.3f}")
+    is_idle = smooth < threshold
 
-    # Detectar ventanas de baja actividad
-    is_idle = gyro_smooth < threshold
+    # Operaciones morfológicas sobre la señal binaria:
+    # Erosión: eliminar ráfagas activas cortas (< 5s) dentro de un período idle
+    # Dilatación: unir períodos idle separados por < 5s (pausas de ciclo)
+    MIN_ACTIVE_FRAMES = int(5 * fps)   # activo real dura > 5s
+    MIN_IDLE_FRAMES   = int(10 * fps)  # intercambio real dura > 10s
+    MERGE_GAP_FRAMES  = int(5 * fps)   # unir idle separados por < 5s activos
+
+    # Rellenar gaps activos cortos dentro del idle (merge)
+    in_idle, gap_start = False, 0
+    is_idle_merged = is_idle.copy()
+    for i, idle in enumerate(is_idle):
+        if not idle and in_idle:
+            gap_start = i
+        elif idle and not in_idle and gap_start > 0:
+            gap_len = i - gap_start
+            if gap_len < MERGE_GAP_FRAMES:
+                is_idle_merged[gap_start:i] = True
+            gap_start = 0
+        in_idle = idle
+
+    # Detectar ventanas idle finales
     truck_events = []
-    in_idle = False
-    t_start = 0
+    in_event, t_start = False, 0
 
-    for i, (t, idle) in enumerate(zip(times, is_idle)):
-        if idle and not in_idle:
-            in_idle = True
+    for i, (t, idle) in enumerate(zip(times, is_idle_merged)):
+        if idle and not in_event:
+            in_event = True
             t_start = t
-        elif not idle and in_idle:
-            in_idle = False
+        elif not idle and in_event:
+            in_event = False
             duration = t - t_start
-            if duration >= 20:  # intercambio real dura > 20s
+            if duration >= 10:
                 truck_events.append({
                     "t_arrival": float(t_start),
                     "t_departure": float(t),
                     "exchange_duration_s": float(duration)
                 })
-                print(f"[{t_start:05.1f}s - {t:05.1f}s] Intercambio detectado ({duration:.1f}s)")
+                print(f"[{t_start:05.1f}s - {t:05.1f}s] Intercambio ({duration:.1f}s)")
 
-    # Si el video termina en idle
-    if in_idle:
+    if in_event:
         t = times[-1]
         duration = t - t_start
-        if duration >= 20:
+        if duration >= 10:
             truck_events.append({
                 "t_arrival": float(t_start),
                 "t_departure": float(t),
                 "exchange_duration_s": float(duration)
             })
 
-    _save(truck_events, gyro_smooth, times)
+    _save(truck_events, smooth, times)
     return truck_events
 
 
