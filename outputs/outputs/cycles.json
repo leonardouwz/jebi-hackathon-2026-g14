@@ -1,0 +1,90 @@
+[
+  {
+    "cycle_id": 1,
+    "t_start": 9.266781952,
+    "t_end": 62.46701696,
+    "duration_s": 53.200235008,
+    "yaw_sweep_deg": 726.2514561660353,
+    "dig_stop_id": 1
+  },
+  {
+    "cycle_id": 2,
+    "t_start": 65.333737984,
+    "t_end": 69.467107072,
+    "duration_s": 4.133369088000009,
+    "yaw_sweep_deg": 184.59793132484845,
+    "dig_stop_id": 4
+  },
+  {
+    "cycle_id": 3,
+    "t_start": 73.400431104,
+    "t_end": 77.467117056,
+    "duration_s": 4.066685952,
+    "yaw_sweep_deg": 20.37819028191359,
+    "dig_stop_id": 5
+  },
+  {
+    "cycle_id": 4,
+    "t_start": 79.933780992,
+    "t_end": 84.067138048,
+    "duration_s": 4.133357056000008,
+    "yaw_sweep_deg": 20.606067450981186,
+    "dig_stop_id": 6
+  },
+  {
+    "cycle_id": 5,
+    "t_start": 85.667149056,
+    "t_end": 90.46718208,
+    "duration_s": 4.800033024000001,
+    "yaw_sweep_deg": 189.23716942541864,
+    "dig_stop_id": 7
+  },
+  {
+    "cycle_id": 6,
+    "t_start": 93.933971968,
+    "t_end": 120.600649984,
+    "duration_s": 26.666678016000006,
+    "yaw_sweep_deg": 414.87137925630066,
+    "dig_stop_id": 8
+  },
+  {
+    "cycle_id": 7,
+    "t_start": 124.800754176,
+    "t_end": 146.667459072,
+    "duration_s": 21.866704896000016,
+    "yaw_sweep_deg": 365.7520364875636,
+    "dig_stop_id": 10
+  },
+  {
+    "cycle_id": 8,
+    "t_start": 150.934128128,
+    "t_end": 176.000900096,
+    "duration_s": 25.066771968000012,
+    "yaw_sweep_deg": 362.3168587874811,
+    "dig_stop_id": 12
+  },
+  {
+    "cycle_id": 9,
+    "t_start": 184.200948992,
+    "t_end": 185.60096896,
+    "duration_s": 1.400019967999981,
+    "yaw_sweep_deg": 10.706670865338992,
+    "dig_stop_id": 14
+  },
+  {
+    "cycle_id": 10,
+    "t_start": 190.600989952,
+    "t_end": 193.467672064,
+    "duration_s": 2.8666821120000066,
+    "yaw_sweep_deg": 10.06466189911339,
+    "dig_stop_id": 15
+  },
+  {
+    "cycle_id": 11,
+    "t_start": 195.134375168,
+    "t_end": 198.26768896,
+    "duration_s": 3.1333137919999956,
+    "yaw_sweep_deg": 10.090664273427592,
+    "dig_stop_id": 16
+  }
+]

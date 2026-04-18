@@ -1,0 +1,22 @@
+{
+  "imu_summary": {
+    "duration_s": 899.87083904,
+    "fs_mean_hz": 10.44927737633026,
+    "n_stops_total": 28,
+    "n_stops_dead": 7,
+    "n_stops_wait": 9,
+    "n_stops_operational": 12,
+    "n_cycles_detected": 11,
+    "longest_stop_s": 205.40087603199999,
+    "time_dead_s": 603.669262848,
+    "time_wait_s": 131.53368627199984,
+    "time_operational_stops_s": 52.06724121599998,
+    "time_active_swing_s": 112.60064870400015,
+    "pct_productive_time": 18.299058351048593,
+    "pct_dead_time": 67.0839899081524,
+    "smoothness_rms_jerk": 25.484443634707862
+  },
+  "truck_events": {
+    "status": "not_implemented"
+  }
+}

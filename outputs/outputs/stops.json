@@ -1,0 +1,198 @@
+[
+  {
+    "stop_id": 1,
+    "t_start": 0.0,
+    "t_end": 9.266781952,
+    "duration_s": 9.266781952,
+    "category": "operational"
+  },
+  {
+    "stop_id": 2,
+    "t_start": 13.266834944,
+    "t_end": 31.533534976,
+    "duration_s": 18.266700032,
+    "category": "wait"
+  },
+  {
+    "stop_id": 3,
+    "t_start": 41.200308992,
+    "t_end": 58.20033408,
+    "duration_s": 17.000025088,
+    "category": "wait"
+  },
+  {
+    "stop_id": 4,
+    "t_start": 62.46701696,
+    "t_end": 65.333737984,
+    "duration_s": 2.866721023999993,
+    "category": "operational"
+  },
+  {
+    "stop_id": 5,
+    "t_start": 69.467107072,
+    "t_end": 73.400431104,
+    "duration_s": 3.9333240320000016,
+    "category": "operational"
+  },
+  {
+    "stop_id": 6,
+    "t_start": 77.467117056,
+    "t_end": 79.933780992,
+    "duration_s": 2.466663935999989,
+    "category": "operational"
+  },
+  {
+    "stop_id": 7,
+    "t_start": 84.067138048,
+    "t_end": 85.667149056,
+    "duration_s": 1.6000110079999956,
+    "category": "operational"
+  },
+  {
+    "stop_id": 8,
+    "t_start": 90.46718208,
+    "t_end": 93.933971968,
+    "duration_s": 3.466789887999994,
+    "category": "operational"
+  },
+  {
+    "stop_id": 9,
+    "t_start": 98.000541184,
+    "t_end": 113.200600064,
+    "duration_s": 15.20005888,
+    "category": "wait"
+  },
+  {
+    "stop_id": 10,
+    "t_start": 120.600649984,
+    "t_end": 124.800754176,
+    "duration_s": 4.200104191999998,
+    "category": "operational"
+  },
+  {
+    "stop_id": 11,
+    "t_start": 128.600721152,
+    "t_end": 142.53408896,
+    "duration_s": 13.933367807999986,
+    "category": "wait"
+  },
+  {
+    "stop_id": 12,
+    "t_start": 146.667459072,
+    "t_end": 150.934128128,
+    "duration_s": 4.266669055999984,
+    "category": "operational"
+  },
+  {
+    "stop_id": 13,
+    "t_start": 154.934173952,
+    "t_end": 172.067563008,
+    "duration_s": 17.133389056,
+    "category": "wait"
+  },
+  {
+    "stop_id": 14,
+    "t_start": 176.000900096,
+    "t_end": 184.200948992,
+    "duration_s": 8.200048895999998,
+    "category": "operational"
+  },
+  {
+    "stop_id": 15,
+    "t_start": 185.60096896,
+    "t_end": 190.600989952,
+    "duration_s": 5.000020992000003,
+    "category": "operational"
+  },
+  {
+    "stop_id": 16,
+    "t_start": 193.467672064,
+    "t_end": 195.134375168,
+    "duration_s": 1.6667031039999927,
+    "category": "operational"
+  },
+  {
+    "stop_id": 17,
+    "t_start": 198.26768896,
+    "t_end": 203.401092096,
+    "duration_s": 5.133403136000027,
+    "category": "operational"
+  },
+  {
+    "stop_id": 18,
+    "t_start": 206.734479104,
+    "t_end": 412.135355136,
+    "duration_s": 205.40087603199999,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 19,
+    "t_start": 416.802016,
+    "t_end": 448.40213504,
+    "duration_s": 31.60011904000004,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 20,
+    "t_start": 453.068880128,
+    "t_end": 464.202205952,
+    "duration_s": 11.133325823999996,
+    "category": "wait"
+  },
+  {
+    "stop_id": 21,
+    "t_start": 469.202258176,
+    "t_end": 504.269095936,
+    "duration_s": 35.06683776,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 22,
+    "t_start": 508.06914816,
+    "t_end": 521.935902976,
+    "duration_s": 13.866754815999968,
+    "category": "wait"
+  },
+  {
+    "stop_id": 23,
+    "t_start": 526.335862016,
+    "t_end": 622.536250112,
+    "duration_s": 96.20038809599998,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 24,
+    "t_start": 626.336313088,
+    "t_end": 744.670147072,
+    "duration_s": 118.33383398399997,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 25,
+    "t_start": 749.470160128,
+    "t_end": 825.270521088,
+    "duration_s": 75.80036096000003,
+    "category": "dead_time"
+  },
+  {
+    "stop_id": 26,
+    "t_start": 826.403857152,
+    "t_end": 839.603936,
+    "duration_s": 13.200078847999976,
+    "category": "wait"
+  },
+  {
+    "stop_id": 27,
+    "t_start": 843.67061504,
+    "t_end": 855.47060096,
+    "duration_s": 11.799985919999926,
+    "category": "wait"
+  },
+  {
+    "stop_id": 28,
+    "t_start": 858.603992064,
+    "t_end": 899.87083904,
+    "duration_s": 41.26684697600001,
+    "category": "dead_time"
+  }
+]
