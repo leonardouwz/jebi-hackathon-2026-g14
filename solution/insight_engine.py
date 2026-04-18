@@ -1,62 +1,91 @@
-"""Genera narrativa e insight con Claude API desde las métricas calculadas."""
 import os
 import json
+import base64
 from anthropic import Anthropic
 
-PROMPT_TEMPLATE = """Eres un analista senior de productividad minera. Acabamos de analizar 
-15 minutos de operación de una pala frontal Hitachi EX-5600 cargando camiones CAT 793F 
-y EH4000 AC-3 en una mina a tajo abierto.
+def generate_placeholder_chart():
+    # Retorna una imagen de 1x1 píxel transparente en base64 para que el dashboard no tire error de imagen rota
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
-Aquí están los KPIs reales extraídos del IMU (sensor inercial con quaternion):
+def main():
+    print("--- Iniciando Insight Engine (Claude API) ---")
+    
+    output_file = "./outputs/metrics.json"
+    
+    # 1. Leer los datos preliminares que dejaron los otros pipelines
+    if not os.path.exists(output_file):
+        print(f"❌ Error: No se encontró {output_file}. ¿Corriste los pipelines anteriores?")
+        return
 
-{metrics_json}
-
-Escribe un reporte en español con EXACTAMENTE esta estructura:
-
-## Hallazgo principal
-[1 frase identificando el mayor cuello de botella, con número concreto del JSON]
-
-## Evidencia cuantificada
-- [3 bullets con números específicos del JSON]
-
-## Recomendación accionable
-[1 acción concreta para el operador o jefe de guardia. NO inventes soluciones genéricas.
-Ánclala en los números del JSON.]
-
-## Impacto estimado
-[Cálculo simple: si X se reduce de A a B, la productividad sube de P a Q t/h. 
-Asume bucket nominal = 68 toneladas, fill factor = 0.9, precio de material = USD 40/t.
-Muestra el cálculo paso a paso en 2-3 líneas.]
-
-## Próximos pasos (si tuviéramos 6h más)
-[2-3 bullets de qué construiríamos]
-
-Reglas:
-- NO inventes números que no estén en el JSON.
-- NO uses disclaimers ("sujeto a validación", "aproximadamente").
-- Si los datos son insuficientes para una sección, di "Datos insuficientes" en lugar de rellenar.
-- Tono profesional pero directo. Sin preámbulo ni cierre.
-"""
-
-def generate_summary(metrics_path, output_path):
-    client = Anthropic()  # usa ANTHROPIC_API_KEY del entorno
-    with open(metrics_path) as f:
+    with open(output_file, "r") as f:
         metrics = json.load(f)
-    
-    prompt = PROMPT_TEMPLATE.format(metrics_json=json.dumps(metrics, indent=2))
-    
-    msg = client.messages.create(
-        model="claude-sonnet-4-5-20250929",  # Sonnet 4.6 / ajustar al nombre exacto del API key del evento
-        max_tokens=1500,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    
-    summary = msg.content[0].text
-    with open(output_path, 'w') as f:
-        f.write(summary)
-    return summary
 
+    # 2. Preparar los datos para Claude
+    data_for_claude = {
+        "duracion_total_segundos": metrics.get("metadata", {}).get("total_duration_seconds", 0),
+        "tiempo_camion_roi_segundos": metrics.get("metadata", {}).get("truck_pipeline", {}).get("total_time_in_roi_seconds", 0),
+        "total_ciclos": metrics.get("video_pipeline", {}).get("aggregated_metrics", {}).get("total_cycles", 0),
+        "detalle_ciclos": metrics.get("video_pipeline", {}).get("cycles", [])
+    }
 
-if __name__ == '__main__':
-    import sys
-    print(generate_summary(sys.argv[1], sys.argv[2]))
+    # 3. Configurar Anthropic y el Prompt
+    # (Asegúrate de que la variable de entorno ANTHROPIC_API_KEY esté configurada en la laptop que corra esto)
+    client = Anthropic() 
+    
+    system_prompt = """Actúas como un Ingeniero Senior de Confiabilidad y Productividad Minera. Analizas datos de una pala Hitachi EX-5600.
+Tu objetivo es interpretar los datos JSON proporcionados y generar un reporte ejecutivo.
+Reglas:
+1. RMS Jerk > 0.60 = Movimiento brusco (fatiga).
+2. fill_relative_percentage < 85% = Ineficiencia de carga.
+Responde ÚNICAMENTE con un JSON válido con la siguiente estructura, sin formato markdown:
+{
+  "operational_flag": "operational" o "degraded" o "offline",
+  "claude_summary": "Tu análisis y recomendación."
+}"""
+
+    try:
+        print("Consultando a Claude 3.5 Sonnet...")
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022", # Modelo por defecto del hackathon
+            max_tokens=300,
+            temperature=0.2, # Baja temperatura para respuestas consistentes
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": f"Analiza estos datos y dame el JSON:\n{json.dumps(data_for_claude)}"}
+            ]
+        )
+        
+        # 4. Parsear la respuesta de Claude
+        claude_response_text = response.content[0].text.strip()
+        
+        # Limpiar si Claude decide devolver bloques markdown a pesar de las instrucciones
+        if claude_response_text.startswith("```json"):
+            claude_response_text = claude_response_text[7:-3]
+            
+        claude_json = json.loads(claude_response_text)
+        print("✅ Análisis de Claude generado con éxito.")
+        
+    except Exception as e:
+        print(f"⚠️ Error al consultar la API de Claude: {e}")
+        print("Generando análisis de respaldo (Fallback)...")
+        claude_json = {
+            "operational_flag": "degraded",
+            "claude_summary": "Error de conexión con IA. Se detectaron ciclos en la sesión, pero se requiere revisión manual de los parámetros de suavidad y llenado."
+        }
+
+    # 5. Guardar los resultados finales en el métricas.json
+    metrics["insight_engine"] = claude_json
+    
+    # 6. Añadir los gráficos (Si tu equipo no hizo gráficos reales, inyectamos placeholders)
+    metrics["charts"] = {
+        "imu_timeseries": generate_placeholder_chart(),
+        "depth_disparity": generate_placeholder_chart()
+    }
+
+    with open(output_file, "w") as f:
+        json.dump(metrics, f, indent=4)
+        
+    print("✅ metrics.json finalizado y guardado en ./outputs/")
+
+if __name__ == "__main__":
+    main()

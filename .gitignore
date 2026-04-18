@@ -23,7 +23,12 @@ env/
 .venv
 .env
 *.egg-info/
-
+venv/
+tmp/
+inputs/*.mp4
+inputs/*.npy
+inputs/*.csv
+dashboard_ui/node_modules/
 # Node
 node_modules/
 package-lock.json

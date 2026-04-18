@@ -181,6 +181,24 @@ def analyze_imu(imu_path):
 
 
 if __name__ == '__main__':
-    import sys, json
-    result = analyze_imu(sys.argv[1])
+    import sys, json, glob, os
+
+    if len(sys.argv) > 1:
+        imu_path = sys.argv[1]
+    else:
+        candidates = glob.glob('./inputs/*.npy') + glob.glob('./inputs/*.csv')
+        if not candidates:
+            print("ERROR: no se encontró IMU en ./inputs/"); sys.exit(1)
+        imu_path = candidates[0]
+
+    print(f"[imu] Analizando {imu_path}")
+    result = analyze_imu(imu_path)
+
+    os.makedirs('./outputs', exist_ok=True)
+    with open('./outputs/cycles.json', 'w') as f:
+        json.dump({'summary': result['summary'], 'cycles': result['cycles']}, f, indent=2)
+    with open('./outputs/stops.json', 'w') as f:
+        json.dump(result['stops'], f, indent=2)
+
     print(json.dumps(result['summary'], indent=2))
+    print(f"\n✓ cycles.json y stops.json guardados en ./outputs/")
